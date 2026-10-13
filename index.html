@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BrokerDesk – Web</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:wght@600&display=swap" rel="stylesheet">
+<style>
+/* ---- Theme (unchanged from the BrokerDesk design) ---- */
+html,body{height:100%}
+body{margin:0;font-family:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',sans-serif;color:#171A3A;background:#F6F5FB}
+a{color:#4338CA}a:hover{color:#3128A6}
+button,input,select,textarea{font-family:inherit}
+:focus-visible{outline:2px solid #4338CA;outline-offset:2px}
+.nav{height:64px;padding:0 14px;border:0;border-bottom:2px solid transparent;background:transparent;color:#C4C6E6;font-size:14px;font-weight:500;cursor:pointer}
+.nav:hover{color:#FFFFFF}
+.nav.on{color:#FFFFFF;border-bottom-color:#FF8A65}
+.tool{cursor:pointer;text-align:left;color:inherit;font:inherit;transition:border-color .15s,box-shadow .15s,transform .15s}
+.tool:hover{border-color:#4338CA;box-shadow:0 8px 24px rgba(14,38,64,.08);transform:translateY(-1px)}
+.pill{display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:12px;font-size:12px;font-weight:500;white-space:nowrap}
+.pill.ok{background:#DDF5EA;color:#0B6B4A}
+.pill.info{background:#E4EDF8;color:#1D4E89}
+.pill.warn{background:#FDF1DC;color:#7A4A00}
+.pill.neutral{background:#EFEDF7;color:#475569}
+.pill.alert{background:#FDE7EE;color:#9F1D4C}
+.row:hover{background:#FAF9FE}
+.ghost{background:transparent;border:0;cursor:pointer}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+input::placeholder{color:#7A8799}
+.pbtn{height:44px;padding:0 22px;border:0;border-radius:10px;background:#4338CA;color:#FFFFFF;font-size:14px;font-weight:600;cursor:pointer}
+.pbtn:hover{background:#3128A6}
+.pbtn:disabled{background:#C9C6E6;cursor:not-allowed}
+.sbtn{height:44px;padding:0 18px;border:1px solid #D5D2E6;border-radius:10px;background:#FFFFFF;color:#171A3A;font-size:14px;font-weight:500;cursor:pointer}
+.sbtn:hover{border-color:#8B83E8}
+.spin{display:block;width:14px;height:14px;border:2px solid #C9C4EA;border-top-color:#4338CA;border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.dim{color:#6B6E88}
+
+/* ---- Layout ---- */
+.app{height:100%;display:flex;flex-direction:column;position:relative}
+header.top{height:64px;flex-shrink:0;background:#1A1D47;display:flex;align-items:center;gap:32px;padding:0 32px}
+.brand{display:flex;align-items:center;gap:10px;color:#FFFFFF;padding:0}
+.brand span{font-size:18px;font-weight:600}
+nav.main{display:flex;gap:4px;flex-grow:1}
+.search{display:flex;align-items:center;gap:8px;height:40px;width:260px;padding:0 12px;border-radius:8px;background:#2A2F66;color:#C4C6E6}
+.search input{flex-grow:1;background:transparent;border:0;color:#FFFFFF;font-size:14px;outline:none}
+.bell{position:relative;width:44px;height:44px;color:#DADCF2;display:flex;align-items:center;justify-content:center}
+.bell i{position:absolute;top:10px;right:11px;width:8px;height:8px;border-radius:4px;background:#F2A33A}
+.avatar{width:40px;height:40px;border-radius:20px;background:#DDF5EA;color:#0B6B4A;font-size:14px;font-weight:600}
+main{flex-grow:1;overflow-y:auto;padding:32px 48px 120px}
+.stack{display:flex;flex-direction:column;gap:32px;max-width:1344px;margin:0 auto}
+
+.hero{position:relative;overflow:hidden;border-radius:20px;background:#1A1D47;padding:32px 36px;display:flex;justify-content:space-between;align-items:center;gap:24px}
+.glow{position:absolute;width:380px;height:380px;border-radius:50%}
+.glow.a{right:-60px;top:-140px;background:radial-gradient(circle,rgba(255,138,101,.55),rgba(255,138,101,0) 70%)}
+.glow.b{right:260px;bottom:-190px;background:radial-gradient(circle,rgba(124,108,255,.6),rgba(124,108,255,0) 70%)}
+.hero-text{position:relative;display:flex;flex-direction:column;gap:8px}
+.hero-date{font-size:14px;color:#C4C6E6}
+.hero h1{margin:0;font-family:'Source Serif 4',Georgia,serif;font-size:38px;font-weight:600;color:#FFFFFF}
+.hero p{margin:0;font-size:15px;color:#DADCF2}
+.hero-btn{position:relative;height:48px;padding:0 20px;display:flex;align-items:center;gap:8px;border:0;border-radius:12px;background:#FFFFFF;color:#1A1D47;font-size:15px;font-weight:600;cursor:pointer}
+
+.grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.kpi{padding:20px;border-radius:12px;display:flex;flex-direction:column;gap:8px}
+.kpi .l{font-size:13px;color:#5B5F7A}
+.kpi .v{font-size:28px;font-weight:600}
+.kpi .s{font-size:13px;color:#5B5F7A}
+
+.section{display:flex;flex-direction:column;gap:16px}
+.section-head{display:flex;flex-direction:column;gap:4px}
+.section-head h2{margin:0;font-size:20px;font-weight:600}
+.section-head p{margin:0;font-size:14px;color:#5B5F7A}
+.tile{padding:20px;background:#FFFFFF;border:1px solid #E4E2F0;border-radius:12px;display:flex;flex-direction:column;gap:14px}
+.tile .ic{width:44px;height:44px;flex-shrink:0;border-radius:10px;display:flex;align-items:center;justify-content:center}
+.tile .t{font-size:16px;font-weight:600}
+.tile .d{font-size:14px;color:#5B5F7A;line-height:1.45}
+.tile.wide{grid-column:span 2;gap:16px}
+.news-top{display:flex;align-items:flex-start;gap:14px}
+.news-top > span:last-child{display:flex;flex-direction:column;gap:4px}
+.news-list{display:flex;flex-direction:column;gap:10px;border-top:1px solid #EFEDF7;padding-top:14px}
+.news-list > span{display:flex;gap:10px;align-items:center;font-size:14px}
+
+.split{display:grid;grid-template-columns:2fr 1fr;gap:16px}
+.card{background:#FFFFFF;border:1px solid #E4E2F0;border-radius:12px;padding:20px 24px;display:flex;flex-direction:column;gap:12px}
+.card-head{display:flex;justify-content:space-between;align-items:center}
+.card-head h2{margin:0;font-size:18px;font-weight:600}
+.link-btn{color:#4338CA;font-size:14px;font-weight:600;height:44px}
+.renew{display:grid;grid-template-columns:2fr 1.6fr 1fr 1.2fr;align-items:center;gap:12px;padding:12px 8px;border-top:1px solid #EFEDF7;font-size:14px}
+.renew .who{display:flex;flex-direction:column;gap:2px}
+.renew .who b{font-weight:600}
+.renew .who small{color:#5B5F7A;font-size:13px}
+.cert{display:flex;flex-direction:column;gap:6px}
+.cert .h{display:flex;justify-content:space-between;gap:8px;font-size:14px}
+.cert .h span:first-child{font-weight:500}
+.cert .h span:last-child{color:#5B5F7A}
+.track{height:6px;border-radius:3px;background:#EFEDF7;overflow:hidden}
+.track div{height:6px}
+
+.fab{position:fixed;right:32px;bottom:32px;height:56px;padding:0 22px 0 18px;border:0;border-radius:28px;background:#1A1D47;color:#FFFFFF;display:flex;align-items:center;gap:10px;font-size:15px;font-weight:600;cursor:pointer;box-shadow:0 10px 28px rgba(14,38,64,.28)}
+
+/* ---- Generate Sales Pitch dialog ---- */
+dialog.pitch{width:min(560px,calc(100vw - 32px));max-height:calc(100vh - 48px);padding:0;border:1px solid #E4E2F0;border-radius:16px;background:#FFFFFF;color:#171A3A;box-shadow:0 24px 60px rgba(14,38,64,.24)}
+dialog.pitch[open]{display:flex;flex-direction:column;animation:pop .18s ease-out}
+dialog.pitch::backdrop{background:rgba(26,29,71,.45)}
+@keyframes pop{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.dlg-head{display:flex;align-items:flex-start;gap:14px;padding:24px 24px 16px}
+.dlg-head .ic{width:44px;height:44px;flex-shrink:0;border-radius:10px;background:#FFF1D6;color:#8A5300;display:flex;align-items:center;justify-content:center}
+.dlg-head h2{margin:0;font-size:20px;font-weight:600}
+.dlg-head p{margin:4px 0 0;font-size:14px;color:#5B5F7A;line-height:1.45}
+.dlg-close{margin-left:auto;width:36px;height:36px;border-radius:8px;color:#5B5F7A;display:flex;align-items:center;justify-content:center}
+.dlg-close:hover{background:#F4F2FB;color:#171A3A}
+.dlg-body{padding:4px 24px 8px;overflow-y:auto;display:flex;flex-direction:column;gap:16px}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:14px;font-weight:500}
+.field .opt-note{font-weight:400;color:#6B6E88}
+.field input{height:44px;padding:0 12px;border:1px solid #D5D2E6;border-radius:10px;background:#FFFFFF;color:#171A3A;font-size:14px;box-sizing:border-box;width:100%}
+.field input:hover{border-color:#8B83E8}
+.field input:focus{outline:none;border-color:#4338CA;box-shadow:0 0 0 3px #E3E0FF}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.hint{font-size:13px;color:#6B6E88;line-height:1.45;margin:0}
+.dlg-foot{display:flex;justify-content:flex-end;gap:12px;padding:16px 24px 24px;border-top:1px solid #EFEDF7;margin-top:8px}
+.preview-msg{padding:12px 14px;border-radius:10px;background:#F4F2FB;font-size:14px;line-height:1.45}
+.preview-msg b{display:block;font-size:13px;font-weight:500;color:#5B5F7A;margin-bottom:4px}
+.busy{display:flex;align-items:center;gap:12px;padding:16px;border:1px solid #E4E2F0;border-radius:12px;background:#FAF9FE;font-size:14px}
+.busy .spin{width:18px;height:18px}
+.result-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.subject{font-size:16px;font-weight:600;margin:0}
+.email-frame{width:100%;height:340px;border:1px solid #E4E2F0;border-radius:12px;background:#FFFFFF}
+.error{padding:12px 14px;border-radius:10px;background:#FDE7EE;color:#9F1D4C;font-size:14px;line-height:1.45}
+/* ---- Draft comparison (human in the loop) ---- */
+dialog.pitch.wide{width:min(1200px,calc(100vw - 32px))}
+.pick-note{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:14px;line-height:1.45}
+.drafts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.draft{display:flex;flex-direction:column;gap:10px;min-width:0;padding:16px;border:2px solid #E4E2F0;border-radius:14px;background:#FFFFFF;color:#171A3A;text-align:left;font:inherit;cursor:pointer;transition:border-color .15s,box-shadow .15s}
+.draft:hover{border-color:#8B83E8}
+.draft.best{border-color:#0E9F6E;background:#F1FBF6}
+.draft.on{box-shadow:0 0 0 4px #E3E0FF}
+.draft.best.on{box-shadow:0 0 0 4px #CDEFDF}
+.draft-head{display:flex;align-items:center;gap:10px}
+.radio{width:18px;height:18px;flex-shrink:0;border-radius:50%;border:2px solid #C9C4EA;box-sizing:border-box;background:#FFFFFF}
+.draft.on .radio{border:5px solid #4338CA}
+.draft.best.on .radio{border-color:#0B6B4A}
+.draft-title{display:flex;flex-direction:column}
+.draft-title b{font-size:15px;font-weight:600}
+.draft-title small{font-size:13px;color:#5B5F7A}
+.draft-head .pill{margin-left:auto}
+.draft-body{white-space:pre-wrap;word-break:break-word;font-size:14px;line-height:1.5;max-height:46vh;overflow-y:auto;padding-top:10px;border-top:1px solid #EFEDF7}
+.draft.best .draft-body{border-top-color:#CDEFDF}
+.foot-note{margin-right:auto;align-self:center;font-size:13px;color:#5B5F7A}
+.sent-ok{display:flex;align-items:center;gap:12px;padding:14px 16px;border:1px solid #9ED9C0;border-radius:12px;background:#F1FBF6;color:#0B6B4A;font-size:14px;font-weight:500}
+.subject-label{margin:0;font-size:13px;color:#5B5F7A}
+@media (max-width:900px){.drafts{grid-template-columns:1fr}.draft-body{max-height:none}.dlg-foot{flex-wrap:wrap}}
+[hidden]{display:none!important}
+
+@media (max-width:1100px){
+  .grid4{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .split{grid-template-columns:1fr}
+  .search{display:none}
+}
+@media (max-width:720px){
+  header.top{gap:12px;padding:0 16px;overflow-x:auto}
+  main{padding:20px 16px 110px}
+  .hero{flex-direction:column;align-items:flex-start}
+  .grid4{grid-template-columns:1fr}
+  .tile.wide{grid-column:auto}
+  .pair{grid-template-columns:1fr}
+  .renew{grid-template-columns:1fr 1fr}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <button type="button" class="ghost brand">
+      <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><rect width="28" height="28" rx="7" fill="#FF7A59"/><path d="M9 7h5.5a3.2 3.2 0 0 1 0 6.4H9zM9 13.4h6.5a3.3 3.3 0 0 1 0 6.6H9z" fill="none" stroke="#FFFFFF" stroke-width="2"/></svg>
+      <span>BrokerDesk</span>
+    </button>
+    <nav class="main" aria-label="Main">
+      <button type="button" class="nav on">Home</button>
+      <button type="button" class="nav">Dashboard</button>
+      <button type="button" class="nav">Clients</button>
+      <button type="button" class="nav">Renewals</button>
+      <button type="button" class="nav">Brokerage</button>
+      <button type="button" class="nav">Certifications</button>
+    </nav>
+    <div class="search">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4-4"/></svg>
+      <label for="top-search" class="sr">Search</label>
+      <input id="top-search" type="search" placeholder="Search clients, policies…">
+    </div>
+    <button type="button" class="ghost bell" aria-label="Notifications">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M6 16v-5a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>
+      <i></i>
+    </button>
+    <button type="button" class="ghost avatar" aria-label="My profile">AR</button>
+  </header>
+
+  <main>
+    <div class="stack">
+      <div class="hero">
+        <div class="glow a" aria-hidden="true"></div>
+        <div class="glow b" aria-hidden="true"></div>
+        <div class="hero-text">
+          <div class="hero-date">Friday, 25 September 2026</div>
+          <h1>Good morning, Arjun</h1>
+          <p>3 renewals need attention this month. Silverline Fintech’s D&amp;O terms are in.</p>
+        </div>
+        <button type="button" class="hero-btn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg>
+          Ask the assistant
+        </button>
+      </div>
+
+      <div class="grid4">
+        <button type="button" class="tool kpi" style="background:#F1EEFF;border:1px solid #DCD6FF">
+          <span class="l">Brokerage earned · FY YTD</span><span class="v">₹1.84 Cr</span><span class="s" style="color:#0B6B4A">46% of ₹4.0 Cr target</span>
+        </button>
+        <button type="button" class="tool kpi" style="background:#E6F7F2;border:1px solid #C4EBDF">
+          <span class="l">Premium placed · FY YTD</span><span class="v">₹24.6 Cr</span><span class="s">Retention 91%</span>
+        </button>
+        <button type="button" class="tool kpi" style="background:#FFF1EA;border:1px solid #FFD9C4">
+          <span class="l">Renewals due · next 30 days</span><span class="v">3</span><span class="s">₹2.8 Cr premium at stake</span>
+        </button>
+        <button type="button" class="tool kpi" style="background:#FFF7DE;border:1px solid #F3E2A6">
+          <span class="l">Certifications</span><span class="v">3 of 4 on track</span><span class="s" style="color:#7A4A00">AML/KYC refresher due in 14 days</span>
+        </button>
+      </div>
+
+      <section class="section">
+        <div class="section-head">
+          <h2>AI Workbench</h2>
+          <p>Stay informed, then advise and create.</p>
+        </div>
+        <div class="grid4">
+          <button type="button" class="tool tile wide">
+            <div class="news-top">
+              <span class="ic" style="background:#E0EFFF;color:#0B5CAD"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 5h13v14H6a2 2 0 0 1-2-2z"/><path d="M17 9h3v8a2 2 0 0 1-2 2"/><path d="M8 9h5M8 13h5M8 16h3"/></svg></span>
+              <span><span class="t">Industry News</span><span class="d">Market, regulatory and insurer updates for the lines you place.</span></span>
+            </div>
+            <span class="news-list">
+              <span><span class="pill info">Liability</span>D&amp;O market update: capacity, pricing and board conversations</span>
+              <span><span class="pill neutral">Regulatory</span>Digest of recent circulars affecting corporate broking</span>
+            </span>
+          </button>
+          <button type="button" class="tool tile">
+            <span class="ic" style="background:#EEE8FF;color:#5B34C7"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H19v15H6.5A1.5 1.5 0 0 0 5 19.5z"/><path d="M5 19.5A1.5 1.5 0 0 0 6.5 21H19"/><path d="M9 7.5h6"/></svg></span>
+            <span class="t">Knowledge Hub</span><span class="d">Product guides, wordings, clauses and training.</span>
+          </button>
+          <button type="button" class="tool tile">
+            <span class="ic" style="background:#FFE8E0;color:#B23A1E"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4-4"/><path d="M8.5 11h5"/></svg></span>
+            <span class="t">Gap Analysis</span><span class="d">Find cover gaps against exposures and peers.</span>
+          </button>
+
+          <!-- AI-agent tile: opens the pitch dialog -->
+          <button type="button" class="tool tile" id="open-pitch" aria-haspopup="dialog" aria-controls="pitch-dialog">
+            <span class="ic" style="background:#FFF1D6;color:#8A5300"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 10v4h3l7 4V6l-7 4z"/><path d="M18 9a4 4 0 0 1 0 6"/></svg></span>
+            <span class="t">Generate Sales Pitch</span><span class="d">A tailored pitch for any client and product.</span>
+          </button>
+
+          <button type="button" class="tool tile">
+            <span class="ic" style="background:#DDF5EF;color:#0B6B5A"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5"/><path d="M10 13h6M10 17h6"/></svg></span>
+            <span class="t">Generate RFP</span><span class="d">Insurer-ready RFPs from client data.</span>
+          </button>
+          <button type="button" class="tool tile">
+            <span class="ic" style="background:#FDE7F0;color:#A3245C"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="4" width="7" height="16" rx="1.5"/><rect x="14" y="4" width="7" height="16" rx="1.5"/><path d="M6 9h1M17 9h1M6 13h1M17 13h1"/></svg></span>
+            <span class="t">Generate QCR</span><span class="d">Compare insurer quotes, recommend one.</span>
+          </button>
+          <button type="button" class="tool tile">
+            <span class="ic" style="background:#E6E8FF;color:#3730A3"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 3 5 6v5c0 4.5 3 8 7 10 4-2 7-5.5 7-10V6z"/><path d="m9 12 2 2 4-4"/></svg></span>
+            <span class="t">Understand D&amp;O Proposal</span><span class="d">Analyse a prospect’s tender, financials and annual report.</span>
+          </button>
+        </div>
+      </section>
+
+      <div class="split">
+        <section class="card">
+          <div class="card-head">
+            <h2>Renewals in the next 30 days</h2>
+            <button type="button" class="ghost link-btn">View all 6</button>
+          </div>
+          <div class="renew row">
+            <span class="who"><b>Silverline Fintech</b><small>D&amp;O Liability</small></span>
+            <span style="color:#334155">Due 09 Oct 2026 · 14 days</span>
+            <span style="font-weight:500">₹38 L</span>
+            <span><span class="pill ok">Terms received</span></span>
+          </div>
+          <div class="renew row">
+            <span class="who"><b>Kestrel Logistics Pvt Ltd</b><small>Marine Cargo (Open)</small></span>
+            <span style="color:#334155">Due 12 Oct 2026 · 17 days</span>
+            <span style="font-weight:500">₹52 L</span>
+            <span><span class="pill info">Quote requested</span></span>
+          </div>
+          <div class="renew row">
+            <span class="who"><b>Arvana Pharma Ltd</b><small>Group Health</small></span>
+            <span style="color:#334155">Due 18 Oct 2026 · 23 days</span>
+            <span style="font-weight:500">₹1.9 Cr</span>
+            <span><span class="pill warn">Pending documents</span></span>
+          </div>
+        </section>
+
+        <section class="card" style="gap:16px">
+          <div class="card-head">
+            <h2>Certification status</h2>
+            <button type="button" class="ghost link-btn">Details</button>
+          </div>
+          <div class="cert"><div class="h"><span>Broker Qualified Person certification</span><span>100%</span></div><div class="track"><div style="width:100%;background:#4338CA"></div></div></div>
+          <div class="cert"><div class="h"><span>CPD hours, FY 2026–27</span><span>72%</span></div><div class="track"><div style="width:72%;background:#1D4E89"></div></div></div>
+          <div class="cert"><div class="h"><span>Cyber Risk Specialist course</span><span>60%</span></div><div class="track"><div style="width:60%;background:#1D4E89"></div></div></div>
+          <div class="cert"><div class="h"><span>AML/KYC annual refresher</span><span>0%</span></div><div class="track"><div style="width:0%;background:#C27C0E"></div></div></div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <button type="button" class="fab" aria-label="Open assistant">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/><path d="M8 10h8M8 13h5"/></svg>
+    Assistant
+  </button>
+</div>
+
+<!-- ================= Generate Sales Pitch dialog ================= -->
+<dialog class="pitch" id="pitch-dialog" aria-labelledby="pitch-title">
+  <div class="dlg-head">
+    <span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 10v4h3l7 4V6l-7 4z"/><path d="M18 9a4 4 0 0 1 0 6"/></svg></span>
+    <div>
+      <h2 id="pitch-title">Generate Sales Pitch</h2>
+      <p id="pitch-sub">A tailored pitch for any client and product.</p>
+    </div>
+    <button type="button" class="ghost dlg-close" data-close aria-label="Close">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+    </button>
+  </div>
+
+  <!-- Step 1: inputs -->
+  <div id="pitch-form-view">
+    <div class="dlg-body">
+      <div class="field">
+        <label for="p-name">Name of the customer <span class="opt-note">(optional)</span></label>
+        <input id="p-name" name="customer_name" type="text" placeholder="e.g. Rohan Mehta" autocomplete="off">
+      </div>
+      <div class="pair">
+        <div class="field">
+          <label for="p-designation">Designation <span class="opt-note">(optional)</span></label>
+          <input id="p-designation" name="designation" type="text" placeholder="e.g. CFO" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="p-company">Company <span class="opt-note">(optional)</span></label>
+          <input id="p-company" name="company" type="text" placeholder="e.g. Kestrel Logistics Pvt Ltd" list="company-list" autocomplete="off">
+        </div>
+      </div>
+      <div class="field">
+        <label for="p-product">Insurance product to pitch <span class="opt-note">(optional)</span></label>
+        <input id="p-product" name="product" type="text" placeholder="e.g. Group Health" list="product-list" autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="p-insurer">Insurance company <span class="opt-note">(optional)</span></label>
+        <input id="p-insurer" name="insurer" type="text" placeholder="e.g. ICICI Lombard" list="insurer-list" autocomplete="off">
+      </div>
+      <div class="preview-msg" aria-live="polite">
+        <b>Instruction sent to the AI agent</b>
+        <span id="p-preview"></span>
+      </div>
+      <p class="hint">Three sales agents each write a draft and the sales manager agent picks the best one. You review all three and choose which one is sent. Leave everything blank for a generic pitch.</p>
+    </div>
+    <div class="dlg-foot">
+      <button type="button" class="sbtn" data-close>Cancel</button>
+      <button type="button" class="pbtn" id="p-submit">Generate drafts</button>
+    </div>
+  </div>
+
+  <!-- Step 2: drafting -->
+  <div id="pitch-busy-view" hidden>
+    <div class="dlg-body">
+      <div class="busy" role="status"><span class="spin"></span><span>Writing three drafts and choosing the best one. This usually takes under a minute.</span></div>
+      <div class="preview-msg"><b>Instruction sent to the AI agent</b><span id="p-busy-msg"></span></div>
+    </div>
+    <div class="dlg-foot"><button type="button" class="sbtn" data-close>Close</button></div>
+  </div>
+
+  <!-- Step 3: compare the three drafts and choose -->
+  <div id="pitch-compare-view" hidden>
+    <div class="dlg-body">
+      <div class="pick-note"><span class="pill ok" id="c-pick-pill"></span><span id="c-reason"></span></div>
+      <div class="drafts" id="c-drafts" role="radiogroup" aria-label="Choose the email to send"></div>
+    </div>
+    <div class="dlg-foot">
+      <span class="foot-note" id="c-note"></span>
+      <button type="button" class="sbtn" id="c-edit">Edit details</button>
+      <button type="button" class="pbtn" id="c-send"></button>
+    </div>
+  </div>
+
+  <!-- Step 4: sending, then sent -->
+  <div id="pitch-send-view" hidden>
+    <div class="dlg-body">
+      <div class="busy" role="status" id="s-busy"><span class="spin"></span><span id="s-status">Preparing the email…</span></div>
+      <div class="sent-ok" role="status" id="s-done" hidden>
+        <span class="pill ok">Sent</span><span>This email was sent to your customer.</span>
+      </div>
+      <div id="s-email" hidden style="display:flex;flex-direction:column;gap:8px">
+        <p class="subject-label">Subject</p>
+        <p class="subject" id="s-subject"></p>
+        <iframe class="email-frame" id="s-frame" title="Email sent to your customer" sandbox=""></iframe>
+      </div>
+    </div>
+    <div class="dlg-foot">
+      <button type="button" class="sbtn" data-close>Close</button>
+      <button type="button" class="pbtn" id="s-again" hidden>Generate another pitch</button>
+    </div>
+  </div>
+
+  <!-- Error -->
+  <div id="pitch-error-view" hidden>
+    <div class="dlg-body"><div class="error" role="alert" id="p-error"></div></div>
+    <div class="dlg-foot">
+      <button type="button" class="sbtn" data-close>Close</button>
+      <button type="button" class="pbtn" id="p-back">Edit details</button>
+    </div>
+  </div>
+</dialog>
+
+<datalist id="company-list">
+  <option value="Kestrel Logistics Pvt Ltd"><option value="Arvana Pharma Ltd"><option value="Northbay Textiles">
+  <option value="Silverline Fintech"><option value="Meridian Hospitals"><option value="Tarang Foods">
+</datalist>
+<datalist id="product-list">
+  <option value="Property"><option value="Group Health"><option value="D&amp;O Liability">
+  <option value="Commercial General Liability"><option value="Marine Cargo"><option value="Cyber">
+</datalist>
+<datalist id="insurer-list">
+  <option value="Tata AIG"><option value="ICICI Lombard"><option value="Raheja QBE"><option value="Bajaj Allianz">
+  <option value="HDFC ERGO"><option value="SBI General"><option value="New India Assurance">
+</datalist>
+
+<script>
+(function () {
+  // Backend (server.py). Same origin when served by FastAPI; localhost when the file is opened directly.
+  const API_BASE = location.protocol === 'file:' ? 'http://localhost:8000' : '';
+
+  const dlg = document.getElementById('pitch-dialog');
+  const $ = (id) => document.getElementById(id);
+  const inputs = {
+    customer_name: $('p-name'), designation: $('p-designation'), company: $('p-company'),
+    product: $('p-product'), insurer: $('p-insurer')
+  };
+  const views = {
+    form: $('pitch-form-view'), busy: $('pitch-busy-view'), compare: $('pitch-compare-view'),
+    send: $('pitch-send-view'), error: $('pitch-error-view')
+  };
+  const SUBTITLES = {
+    form: 'A tailored pitch for any client and product.',
+    busy: 'A tailored pitch for any client and product.',
+    compare: 'Review the three drafts. The AI agent’s pick is highlighted in green.',
+    send: 'Your chosen email, as it goes to your customer.',
+    error: 'A tailored pitch for any client and product.'
+  };
+  let busy = false;
+  let state = { drafts: [], best: 1, selected: 1 };
+
+  function show(name) {
+    Object.keys(views).forEach((k) => { views[k].hidden = k !== name; });
+    dlg.classList.toggle('wide', name === 'compare');
+    $('pitch-sub').textContent = SUBTITLES[name];
+  }
+  function values() { const o = {}; Object.keys(inputs).forEach((k) => { o[k] = inputs[k].value.trim(); }); return o; }
+  let errorBack = 'form';
+  function fail(msg, back) {
+    errorBack = back || 'form';
+    $('p-error').textContent = msg;
+    $('p-back').textContent = errorBack === 'compare' ? 'Back to drafts' : 'Edit details';
+    show('error');
+  }
+  function reopen() { if (!dlg.open) dlg.showModal(); }
+
+  // Mirrors build_message() in server.py so the user sees exactly what the agent receives.
+  function buildMessage(v) {
+    if (!v.designation && !v.company && !v.product && !v.insurer) {
+      return 'Send out a generic cold sales email addressed to Dear Sir/Madam.';
+    }
+    let m = 'Send out a cold sales email addressed to Dear Sir/Madam';
+    if (v.designation) m += ' ' + v.designation;
+    if (v.company) m += (v.designation ? ' of ' : ' at ') + v.company;
+    m += ',';
+    if (v.product) m += ' pitching for the ' + v.product;
+    if (v.insurer) m += (v.product ? ' and' : '') + ' on behalf of ' + v.insurer;
+    return m.replace(/,$/, '') + '.';
+  }
+  function refreshPreview() { $('p-preview').textContent = buildMessage(values()); }
+  Object.values(inputs).forEach((el) => el.addEventListener('input', refreshPreview));
+
+  // Drafts come back as plain text with light markdown: escape it, then keep **bold** and drop # markers.
+  function draftHtml(text) {
+    const esc = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return esc.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/^#{1,6}\s*/gm, '');
+  }
+
+  function current() { return Object.keys(views).find((k) => !views[k].hidden); }
+  function openDialog() {
+    const cur = current();
+    if (!busy && (cur === 'error' || (cur === 'send' && !$('s-again').hidden))) show('form');
+    refreshPreview();
+    dlg.showModal();
+    if (current() === 'form') inputs.customer_name.focus();
+  }
+  $('open-pitch').addEventListener('click', openDialog);
+  dlg.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', () => dlg.close()));
+  dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); });
+  $('p-back').addEventListener('click', () => show(errorBack));
+  $('c-edit').addEventListener('click', () => show('form'));
+  $('s-again').addEventListener('click', () => {
+    Object.values(inputs).forEach((el) => { el.value = ''; });
+    refreshPreview(); show('form'); inputs.customer_name.focus();
+  });
+  show('form');
+
+  // ---------- Step 1: ask the agents for three drafts and the AI pick
+  $('p-submit').addEventListener('click', async () => {
+    const v = values();
+    $('p-busy-msg').textContent = buildMessage(v);
+    show('busy');
+    busy = true;
+    try {
+      const res = await fetch(API_BASE + '/api/sales-pitch/drafts', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(v)
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.detail || ('The agent server returned an error (' + res.status + ').'));
+      state = { drafts: data.drafts || [], best: data.best || 1, selected: data.best || 1 };
+      $('c-pick-pill').textContent = 'AI pick: Draft ' + state.best;
+      $('c-reason').textContent = data.reason || '';
+      renderDrafts();
+      show('compare');
+      const picked = $('c-drafts').querySelector('.draft.on');
+      if (picked) picked.focus();
+    } catch (err) {
+      fail(err instanceof TypeError
+        ? 'Could not reach the agent server at ' + (API_BASE || location.origin) + '. Start it with: python -m uvicorn server:app --reload'
+        : err.message);
+    } finally {
+      busy = false;
+      reopen();
+    }
+  });
+
+  // ---------- Step 2: compare, accept or change
+  function renderDrafts() {
+    const wrap = $('c-drafts');
+    wrap.innerHTML = '';
+    state.drafts.forEach((d) => {
+      const isBest = d.number === state.best;
+      const isOn = d.number === state.selected;
+      const card = document.createElement('button');
+      card.type = 'button';
+      card.className = 'draft' + (isBest ? ' best' : '') + (isOn ? ' on' : '');
+      card.setAttribute('role', 'radio');
+      card.setAttribute('aria-checked', String(isOn));
+      card.tabIndex = isOn ? 0 : -1;
+      card.innerHTML =
+        '<span class="draft-head"><span class="radio" aria-hidden="true"></span>' +
+        '<span class="draft-title"><b>Draft ' + d.number + '</b><small>' + d.style + '</small></span>' +
+        (isBest ? '<span class="pill ok">AI pick</span>' : '') + '</span>' +
+        '<span class="draft-body">' + draftHtml(d.body || '') + '</span>';
+      card.addEventListener('click', () => select(d.number));
+      card.addEventListener('keydown', (e) => {
+        const n = state.drafts.length;
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); select(state.selected % n + 1, true); }
+        if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); select((state.selected + n - 2) % n + 1, true); }
+      });
+      wrap.appendChild(card);
+    });
+    const accepted = state.selected === state.best;
+    $('c-send').textContent = accepted ? 'Accept AI pick and send' : 'Send Draft ' + state.selected + ' instead';
+    $('c-note').textContent = accepted ? 'Draft ' + state.best + ' is selected.' : 'You changed the AI’s pick to Draft ' + state.selected + '.';
+  }
+  function select(n, focus) {
+    state.selected = n;
+    renderDrafts();
+    if (focus) { const c = $('c-drafts').querySelector('.draft.on'); if (c) c.focus(); }
+  }
+
+  // ---------- Step 3: send the chosen draft; show the final email while SendGrid sends it
+  const STAGE_TEXT = {
+    preparing: 'Preparing the email…',
+    subject: 'Writing the subject line…',
+    html: 'Formatting the email in HTML…',
+    sending: 'Sending this email to your customer…'
+  };
+
+  $('c-send').addEventListener('click', async () => {
+    const chosen = state.drafts.find((d) => d.number === state.selected);
+    if (!chosen) return;
+    $('s-busy').hidden = false; $('s-done').hidden = true; $('s-email').hidden = true; $('s-again').hidden = true;
+    $('s-status').textContent = STAGE_TEXT.preparing;
+    show('send');
+    busy = true;
+    let sent = false;
+
+    const handle = (ev) => {
+      if (ev.stage === 'error') throw new Error(ev.detail || 'The email could not be sent.');
+      if (STAGE_TEXT[ev.stage]) $('s-status').textContent = STAGE_TEXT[ev.stage];
+      if (ev.stage === 'sending') {
+        $('s-subject').textContent = ev.subject || '(No subject)';
+        $('s-frame').srcdoc = ev.html_body || '';
+        $('s-email').hidden = false;
+      }
+      if (ev.stage === 'sent') {
+        sent = true;
+        $('s-busy').hidden = true; $('s-done').hidden = false; $('s-again').hidden = false;
+      }
+    };
+
+    try {
+      const res = await fetch(API_BASE + '/api/sales-pitch/send', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ draft: chosen.body })
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.detail || ('The agent server returned an error (' + res.status + ').'));
+      }
+      // The server streams one JSON object per line as the Email Manager works.
+      const reader = res.body.getReader();
+      const dec = new TextDecoder();
+      let buf = '';
+      for (;;) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buf += dec.decode(value, { stream: true });
+        let i;
+        while ((i = buf.indexOf('\n')) >= 0) {
+          const line = buf.slice(0, i).trim();
+          buf = buf.slice(i + 1);
+          if (line) handle(JSON.parse(line));
+        }
+      }
+      if (buf.trim()) handle(JSON.parse(buf));
+      if (!sent) throw new Error('The connection closed before the email was confirmed as sent.');
+    } catch (err) {
+      fail(err instanceof TypeError
+        ? 'Could not reach the agent server at ' + (API_BASE || location.origin) + '. Start it with: python -m uvicorn server:app --reload'
+        : err.message, 'compare');
+    } finally {
+      busy = false;
+      reopen();
+    }
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+openai-agents
+openai
+sendgrid
+python-dotenv
+pydantic
+fastapi
+uvicorn[standard]
+nbformat
