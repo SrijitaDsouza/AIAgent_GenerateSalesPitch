@@ -1,3 +1,14 @@
+---
+title: Generate Sales Pitch (AI agent)
+emoji: 🛡️
+colorFrom: blue
+colorTo: indigo
+sdk: gradio
+sdk_version: 6.28.0
+app_file: app.py
+pinned: false
+---
+
 # BrokerDesk – Generate Sales Pitch (AI agent)
 This program does the below:
 Sales Manager Agent working in insurance company:
